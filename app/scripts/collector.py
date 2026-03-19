@@ -38,7 +38,7 @@ def extract_data():
     return df
 
 def transform_data(df):
-    print("Starting data transformation with anti-spam filter...")
+    print("Starting data transformation and feature engineering...")
     df['salary'] = pd.to_numeric(df['salary'], errors='coerce').fillna(0.0)
     df['title'] = df['title'].str.strip().str.title()
     df['company'] = df['company'].str.strip()
@@ -49,6 +49,18 @@ def transform_data(df):
         'administrative assistant', 'patient care', 'equipment operator'
     ]
     df = df[~df['title'].str.lower().str.contains('|'.join(spam_words), na=False)]
+
+    def extract_tech(title):
+        title_lower = str(title).lower()
+        if 'python' in title_lower: return 'Python'
+        elif 'javascript' in title_lower or 'frontend' in title_lower: return 'JavaScript'
+        elif 'java' in title_lower: return 'Java'
+        elif 'react' in title_lower: return 'React'
+        elif 'data' in title_lower or 'machine learning' in title_lower: return 'Data/ML'
+        elif 'node' in title_lower: return 'Node.js'
+        else: return 'Not Specified'  
+        
+    df['technology'] = df['title'].apply(extract_tech)
     
     print(f"Transformation completed. {len(df)} jobs kept after filtering.")
     return df
@@ -62,7 +74,7 @@ def load_data(df):
                 title=row['title'],
                 company=row['company'],
                 location=row['location'],
-                technology="Python",
+                technology=row['technology'],
                 salary_min=float(row['salary']),
                 salary_max=0.0,
                 posted_at=datetime.now()
