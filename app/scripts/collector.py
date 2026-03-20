@@ -3,12 +3,13 @@ from app.database import SessionLocal, engine, Base
 from app.models.job import Job
 from datetime import datetime
 import requests
+from bs4 import BeautifulSoup
 
 def extract_data():
     print("Starting mass data extraction via The Muse API...")
     raw_jobs = []
     
-    for page in range(1, 100):
+    for page in range(1, 25):
         print(f"Downloading page {page}...")
         url = f"https://www.themuse.com/api/public/jobs?category=Software%20Engineering&page={page}"
         response = requests.get(url)
@@ -24,11 +25,14 @@ def extract_data():
                 company_data = job.get("company", {})
                 company_name = company_data.get("name", "Unknown")
                 
+                description_html = job.get("contents", "")
+                
                 raw_jobs.append({
                     "title": job.get("name", "No Title"),
                     "company": company_name,
                     "location": location_name,
-                    "salary": "0" 
+                    "salary": "0",
+                    "description": description_html
                 })
         else:
             print(f"Error reading page {page}. Status Code: {response.status_code}")
@@ -38,7 +42,7 @@ def extract_data():
     return df
 
 def transform_data(df):
-    print("Starting data transformation with strict whitelist filter...")
+    print("Starting data transformation with strict whitelist filter and technology extraction...")
     df['salary'] = pd.to_numeric(df['salary'], errors='coerce').fillna(0.0)
     df['title'] = df['title'].str.strip().str.title()
     df['company'] = df['company'].str.strip()
@@ -49,8 +53,34 @@ def transform_data(df):
         'cloud', 'network', 'qa', 'system', 'artificial intelligence',
         'ios', 'android', 'mobile'
     ]
-    
     df = df[df['title'].str.lower().str.contains('|'.join(valid_words), na=False)]
+
+    def clean_html(html_text):
+        if not html_text:
+            return ""
+        return BeautifulSoup(str(html_text), "html.parser").get_text(separator=" ").lower()
+
+    df['clean_desc'] = df['description'].apply(clean_html)
+
+    def extract_tech(row):
+        text_to_search = str(row['title']).lower() + " " + str(row['clean_desc'])
+        techs = []
+        
+        if 'python' in text_to_search: techs.append('Python')
+        if 'java ' in text_to_search or 'spring' in text_to_search: techs.append('Java')
+        if 'javascript' in text_to_search or 'react' in text_to_search: techs.append('JavaScript/React')
+        if 'node' in text_to_search: techs.append('Node.js')
+        if 'c#' in text_to_search or '.net' in text_to_search: techs.append('C#/.NET')
+        if 'data ' in text_to_search or 'machine learning' in text_to_search: techs.append('Data/ML')
+        if 'ruby' in text_to_search: techs.append('Ruby')
+        if 'go ' in text_to_search or 'golang' in text_to_search: techs.append('Go')
+        if 'aws' in text_to_search: techs.append('AWS')
+        if 'sql' in text_to_search: techs.append('SQL')
+        if 'docker' in text_to_search: techs.append('Docker')
+        
+        return ", ".join(techs) if techs else 'Not Specified'
+        
+    df['technology'] = df.apply(extract_tech, axis=1)
     
     print(f"Transformation completed. {len(df)} jobs kept after filtering.")
     return df
@@ -64,7 +94,7 @@ def load_data(df):
                 title=row['title'],
                 company=row['company'],
                 location=row['location'],
-                technology="Python",
+                technology=row['technology'],
                 salary_min=float(row['salary']),
                 salary_max=0.0,
                 posted_at=datetime.now()
