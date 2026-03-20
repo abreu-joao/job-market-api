@@ -42,7 +42,7 @@ def extract_data():
     return df
 
 def transform_data(df):
-    print("Starting data transformation: whitelist, technology, and seniority extraction...")
+    print("Starting data transformation: whitelist, technology, seniority, and title cleaning...")
     df['salary'] = pd.to_numeric(df['salary'], errors='coerce').fillna(0.0)
     df['title'] = df['title'].str.strip().str.title()
     df['company'] = df['company'].str.strip()
@@ -94,6 +94,8 @@ def transform_data(df):
             return 'Not Specified'
 
     df['seniority'] = df['title'].apply(extract_seniority)
+    
+    df['title'] = df['title'].apply(lambda x: x.split('-')[0].split(',')[0].strip())
     
     print(f"Transformation completed. {len(df)} jobs kept after filtering.")
     return df
