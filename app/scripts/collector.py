@@ -97,7 +97,19 @@ def transform_data(df: pd.DataFrame) -> pd.DataFrame:
 
     df['seniority'] = df['title'].apply(extract_seniority)
     
-    df['title'] = df['title'].apply(lambda x: x.split('-')[0].split(',')[0].strip())
+    def clean_title(title):
+        t = title.split('-')[0].split('(')[0].strip()
+        
+        if ',' in t:
+            parts = [p.strip() for p in t.split(',')]
+            if len(parts[0]) <= 8 and len(parts) > 1:
+                t = parts[1]
+            else:
+                t = parts[0]
+                
+        return t
+
+    df['title'] = df['title'].apply(clean_title)
     
     print(f"Transformation completed. {len(df)} jobs kept after filtering.")
     return df
