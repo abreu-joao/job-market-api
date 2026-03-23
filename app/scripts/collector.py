@@ -98,14 +98,18 @@ def transform_data(df: pd.DataFrame) -> pd.DataFrame:
     df['seniority'] = df['title'].apply(extract_seniority)
     
     def clean_title(title):
-        t = title.split('-')[0].split('(')[0].strip()
+        t = title.split('(')[0].strip()
         
-        if ',' in t:
-            parts = [p.strip() for p in t.split(',')]
+        t_normalized = t.replace(' - ', ',').replace('-', ',')
+        
+        if ',' in t_normalized:
+            parts = [p.strip() for p in t_normalized.split(',')]
             if len(parts[0]) <= 8 and len(parts) > 1:
                 t = parts[1]
             else:
                 t = parts[0]
+        else:
+            t = t_normalized
                 
         return t
 
