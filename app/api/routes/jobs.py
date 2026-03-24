@@ -5,6 +5,7 @@ from app.services.job_service import get_total_jobs, get_jobs_by_location
 from app.database import get_db
 from app.models.job import Job
 from app.schemas.job import JobResponse, JobCreate
+from datetime import datetime
 
 router = APIRouter()
 
@@ -23,7 +24,8 @@ def create_job(job: JobCreate, db: Session = Depends(get_db)):
         location=job.location,
         technology=job.technology,
         seniority=job.seniority,
-        salary=job.salary
+        salary=job.salary,
+        posted_at=datetime.utcnow()
     )
     
     db.add(new_job)
