@@ -10,6 +10,5 @@ class Job(Base):
     location = Column(String)
     technology = Column(String, index=True)
     seniority = Column(String) 
-    salary_min = Column(Float, nullable=True)
-    salary_max = Column(Float, nullable=True)
+    salary = Column(Float, nullable=True)
     posted_at = Column(DateTime)

@@ -133,8 +133,7 @@ def load_data(df: pd.DataFrame) -> None:
                 location=row['location'],
                 technology=row['technology'],
                 seniority=row['seniority'],  
-                salary_min=float(row['salary']),
-                salary_max=0.0,
+                salary=float(row['salary']),
                 posted_at=row['posted_at']
             )
             db.add(new_job)

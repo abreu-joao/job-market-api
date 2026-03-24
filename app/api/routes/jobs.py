@@ -22,8 +22,7 @@ def create_job(job: JobCreate, db: Session = Depends(get_db)):
         company=job.company,
         location=job.location,
         technology=job.technology,
-        salary_min=job.salary_min,
-        salary_max=job.salary_max,
+        salary=job.salary,
         description=job.description
     )
     
