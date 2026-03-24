@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime
-from datetime import datetime
 from app.database import Base
 
 class Job(Base):
@@ -13,4 +12,4 @@ class Job(Base):
     seniority = Column(String) 
     salary_min = Column(Float, nullable=True)
     salary_max = Column(Float, nullable=True)
-    posted_at = Column(DateTime, default=datetime.utcnow)
+    posted_at = Column(DateTime)

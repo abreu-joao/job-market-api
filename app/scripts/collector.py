@@ -21,17 +21,20 @@ def extract_data() -> pd.DataFrame:
             for job in jobs_list:
                 locations = job.get("locations", [])
                 location_name = locations[0].get("name") if locations else "Remote / Not specified"
-                
+
                 company_data = job.get("company", {})
                 company_name = company_data.get("name", "Unknown")
-                
+
                 description_html = job.get("contents", "")
+
+                pub_date = job.get("publication_date")
                 
                 raw_jobs.append({
                     "title": job.get("name", "No Title"),
                     "company": company_name,
                     "location": location_name,
                     "salary": "0",
+                    "posted_at": pub_date,
                     "description": description_html
                 })
         else:
@@ -43,9 +46,10 @@ def extract_data() -> pd.DataFrame:
 
 def transform_data(df: pd.DataFrame) -> pd.DataFrame:
     print("Starting data transformation: whitelist, technology, seniority, and title cleaning...")
-    df['salary'] = pd.to_numeric(df['salary'], errors='coerce').fillna(0.0)
     df['title'] = df['title'].str.strip().str.title()
     df['company'] = df['company'].str.strip()
+    df['salary'] = pd.to_numeric(df['salary'], errors='coerce').fillna(0.0)
+    df['posted_at'] = pd.to_datetime(df['posted_at'], errors='coerce').dt.tz_localize(None)
     
     valid_words = [
         'software', 'developer', 'backend', 'frontend', 'fullstack', 
@@ -131,7 +135,7 @@ def load_data(df: pd.DataFrame) -> None:
                 seniority=row['seniority'],  
                 salary_min=float(row['salary']),
                 salary_max=0.0,
-                posted_at=datetime.now()
+                posted_at=row['posted_at']
             )
             db.add(new_job)
         
