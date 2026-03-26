@@ -23,24 +23,6 @@ app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
 
-def test_create_job_success():
-    payload = {
-        "title": "Junior Python Developer",
-        "company": "Up Technology",
-        "location": "Los Angeles, CA",
-        "technology": "Python, SQL",
-        "seniority": "Junior",
-        "salary": 60000
-    }
-    
-    response = client.post("/jobs", json=payload)
-    
-    assert response.status_code == 200
-    data = response.json()
-    assert data["title"] == "Junior Python Developer"
-    assert data["company"] == "Up Technology"
-    assert "id" in data
-
 def test_list_jobs_with_filter():
     response = client.get("/jobs?tech=Python")
     

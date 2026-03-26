@@ -42,23 +42,6 @@ def read_jobs(
         
     return query.all()
 
-@router.post("/jobs", response_model=JobResponse)
-def create_job(job: JobCreate, db: Session = Depends(get_db)):
-    new_job = Job(
-        title=job.title,
-        company=job.company,
-        location=job.location,
-        technology=job.technology,
-        seniority=job.seniority,
-        salary=job.salary,
-        posted_at=datetime.now(timezone.utc) 
-    )
-    
-    db.add(new_job)
-    db.commit()
-    db.refresh(new_job)
-    return new_job
-
 @router.get("/jobs/stats")
 def get_job_statistics(db: Session = Depends(get_db)):
     return {
