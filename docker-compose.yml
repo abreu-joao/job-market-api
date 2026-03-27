@@ -11,6 +11,33 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d jobs_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  etl_job:
+    build: .
+    container_name: job_market_collector
+    environment:
+      - DATABASE_URL=postgresql://postgres:admin@db:5432/jobs_db
+    command: python -m app.scripts.collector
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: .
+    container_name: job_market_api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:admin@db:5432/jobs_db
+    depends_on:
+      etl_job:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:
